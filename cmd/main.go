@@ -30,10 +30,22 @@ func main() {
 	router.HandleFunc("/api/findAllTodolist", func(w http.ResponseWriter, r *http.Request) {
 		handler.FindAllTodo(w, r)
 	}).Methods(http.MethodGet)
-	//FIND BY ID
+	// FIND BY ID
 	router.HandleFunc("/api/findByIdTodolist/{todolistId}", func(w http.ResponseWriter, r *http.Request) {
 		handler.FindByIdTodo(w, r)
 	}).Methods(http.MethodGet)
+	// UPDATE
+	router.HandleFunc("/api/updateTodolist/{todolistId}", func(w http.ResponseWriter, r *http.Request) {
+		handler.UpdateTodo(w, r, &apiRequest.TodolistUpdateRequest{})
+	}).Methods(http.MethodPut)
+	// UPDATE STATUS
+	router.HandleFunc("/api/updateStatusTodolist/{todolistId}", func(w http.ResponseWriter, r *http.Request) {
+		handler.UpdateStatusTodo(w, r, &apiRequest.TodolistUpdateStatusRequest{})
+	}).Methods(http.MethodPut)
+	// DELETE
+	router.HandleFunc("/api/deleteTodolist/{todolistId}", func(w http.ResponseWriter, r *http.Request) {
+		handler.DeleteTodo(w, r)
+	}).Methods(http.MethodDelete)
 
 	log.Fatal(http.ListenAndServe(":1234", router))
 }
