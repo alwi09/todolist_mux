@@ -11,5 +11,5 @@ type TodolistHandler interface {
 	FindByIdTodo(w http.ResponseWriter, r *http.Request) error
 	UpdateTodo(w http.ResponseWriter, r *http.Request, request apiRequest.TodolistUpdateRequest) error
 	UpdateStatusTodo(w http.ResponseWriter, r *http.Request, request apiRequest.TodolistUpdateStatusRequest) error
-	DeleteTodo(w http.ResponseWriter, r *http.Request, todolistId int) error
+	DeleteTodo(w http.ResponseWriter, r *http.Request) error
 }
