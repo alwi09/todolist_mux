@@ -1,10 +1,10 @@
 package domain
 
 type Todolist struct {
-	Id          int
-	Title       string
-	Description string
-	Status      bool
+	Id          int    `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Status      bool   `json:"status"`
 }
 
 type Response struct {
