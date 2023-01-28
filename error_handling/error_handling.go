@@ -13,7 +13,7 @@ func ErrorHandlingInternalServerError(w http.ResponseWriter, err error) {
 	apiResponse := domain.Response{
 		Status:  http.StatusInternalServerError,
 		Message: "Internal server error",
-		Data:    err,
+		Data:    err.Error(),
 	}
 
 	w.WriteHeader(apiResponse.Status)
@@ -27,7 +27,7 @@ func ErrorHandlingStatusNotFound(w http.ResponseWriter, err error) {
 	apiResponse := domain.Response{
 		Status:  http.StatusNotFound,
 		Message: "Not found",
-		Data:    err,
+		Data:    err.Error(),
 	}
 
 	w.WriteHeader(apiResponse.Status)
@@ -41,7 +41,7 @@ func ErrorHandlingBadRequest(w http.ResponseWriter, err error) {
 	apiResponse := domain.Response{
 		Status:  http.StatusBadRequest,
 		Message: "Bad request",
-		Data:    err,
+		Data:    err.Error(),
 	}
 
 	w.WriteHeader(apiResponse.Status)
