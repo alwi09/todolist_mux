@@ -2,15 +2,18 @@ package helper
 
 import (
 	"encoding/json"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
 func ReadFromRequestBody(r *http.Request, result interface{}) error {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(result)
-	PanicIfError(err)
+	if err != nil {
+		logrus.Error(err, "Read from request body failed")
+	}
 
-	return nil
+	return err
 }
 
 func WriteFromRequestBody(w http.ResponseWriter, response interface{}) error {
@@ -18,7 +21,10 @@ func WriteFromRequestBody(w http.ResponseWriter, response interface{}) error {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	encoder := json.NewEncoder(w)
 	err := encoder.Encode(response)
-	PanicIfError(err)
+	if err != nil {
+		logrus.Error(err, "Write from request body failed")
 
-	return nil
+	}
+
+	return err
 }
