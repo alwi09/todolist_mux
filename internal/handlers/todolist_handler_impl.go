@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -27,9 +28,9 @@ func NewTodolistHandlerImpl(DB *sql.DB) *TodolistHandlerImpl {
 func (handler *TodolistHandlerImpl) CreateTodo(w http.ResponseWriter, r *http.Request, request *apiRequest.TodolistCreateRequest) error {
 	err := helper.ReadFromRequestBody(r, &request)
 	if err != nil {
+		error_handling.ErrorHandlingBadRequest(w, err)
 		logrus.Error(err)
-		helper.PanicIfError(err)
-		return nil
+		return err
 	}
 
 	validate := validator.New()
@@ -37,19 +38,20 @@ func (handler *TodolistHandlerImpl) CreateTodo(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		error_handling.ErrorHandlingBadRequest(w, err)
 		logrus.Error(err)
-		return nil
+		return err
 	}
 
 	exec, err := handler.DB.Exec("INSERT INTO todolist_mux(title,description) VALUES (?,?)", request.Title, request.Description)
 	if err != nil {
 		error_handling.ErrorHandlingInternalServerError(w, err)
 		logrus.Error(err)
+		return err
 	}
 
 	id, err := exec.LastInsertId()
 	if err != nil {
 		logrus.Error(err)
-		return nil
+		return err
 	}
 
 	apiResponse := domain.Response{
@@ -63,6 +65,7 @@ func (handler *TodolistHandlerImpl) CreateTodo(w http.ResponseWriter, r *http.Re
 	err = helper.WriteFromRequestBody(w, apiResponse)
 	if err != nil {
 		logrus.Error(err)
+		return err
 	}
 
 	return nil
@@ -76,7 +79,7 @@ func (handler *TodolistHandlerImpl) FindAllTodo(w http.ResponseWriter, r *http.R
 	if err != nil {
 		error_handling.ErrorHandlingInternalServerError(w, err)
 		logrus.Error(err)
-		return nil
+		return err
 	}
 
 	for rows.Next() {
@@ -112,7 +115,7 @@ func (handler *TodolistHandlerImpl) FindByIdTodo(w http.ResponseWriter, r *http.
 	if err := handler.DB.QueryRow("SELECT COUNT(*) FROM todolist_mux WHERE id=?", todolistId).Scan(&count); err != nil {
 		error_handling.ErrorHandlingInternalServerError(w, err)
 		logrus.Error("Failed to check Todolist ", err)
-		return nil
+		return err
 	}
 
 	// jika id tidak sama dengan id yang di kirim dalam request
@@ -127,7 +130,7 @@ func (handler *TodolistHandlerImpl) FindByIdTodo(w http.ResponseWriter, r *http.
 	if err != nil {
 		error_handling.ErrorHandlingInternalServerError(w, err)
 		logrus.Error("Error get id ", err)
-		return nil
+		return err
 	}
 
 	// perulangan sebanyak data yang di cari di database
@@ -156,10 +159,11 @@ func (handler *TodolistHandlerImpl) FindByIdTodo(w http.ResponseWriter, r *http.
 func (handler *TodolistHandlerImpl) UpdateTodo(w http.ResponseWriter, r *http.Request, request *apiRequest.TodolistUpdateRequest) error {
 
 	err := helper.ReadFromRequestBody(r, &request)
+	fmt.Println(err.Error())
 	if err != nil {
 		logrus.Error(err)
-		helper.PanicIfError(err)
-		return nil
+		error_handling.ErrorHandlingBadRequest(w, err)
+		return err
 	}
 
 	params := mux.Vars(r)
@@ -169,7 +173,7 @@ func (handler *TodolistHandlerImpl) UpdateTodo(w http.ResponseWriter, r *http.Re
 	if err := handler.DB.QueryRow("SELECT COUNT(*) FROM todolist_mux WHERE id=?", todolistId).Scan(&count); err != nil {
 		error_handling.ErrorHandlingInternalServerError(w, err)
 		logrus.Error("Failed to check Todolist ", err)
-		return nil
+		return err
 	}
 
 	if count == 0 {
@@ -184,8 +188,8 @@ func (handler *TodolistHandlerImpl) UpdateTodo(w http.ResponseWriter, r *http.Re
 	})
 	if err != nil {
 		error_handling.ErrorHandlingBadRequest(w, err)
-		logrus.Error(err)
-		return nil
+		logrus.Error(err.Error())
+		return err
 	}
 
 	if request.Title != "" && request.Description == "" {
@@ -199,7 +203,7 @@ func (handler *TodolistHandlerImpl) UpdateTodo(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		error_handling.ErrorHandlingInternalServerError(w, err)
 		logrus.Error(err)
-		return nil
+		return err
 	}
 
 	apiResponse := domain.Response{
@@ -220,8 +224,8 @@ func (handler *TodolistHandlerImpl) UpdateStatusTodo(w http.ResponseWriter, r *h
 	err := helper.ReadFromRequestBody(r, &request)
 	if err != nil {
 		logrus.Error(err)
-		helper.PanicIfError(err)
-		return nil
+		error_handling.ErrorHandlingBadRequest(w, err)
+		return err
 	}
 
 	params := mux.Vars(r)
@@ -231,7 +235,7 @@ func (handler *TodolistHandlerImpl) UpdateStatusTodo(w http.ResponseWriter, r *h
 	if err := handler.DB.QueryRow("SELECT COUNT(*) FROM todolist_mux WHERE id=?", todolistId).Scan(&count); err != nil {
 		error_handling.ErrorHandlingInternalServerError(w, err)
 		logrus.Error("Failed to check Todolist ", err)
-		return nil
+		return err
 	}
 
 	if count == 0 {
@@ -246,14 +250,14 @@ func (handler *TodolistHandlerImpl) UpdateStatusTodo(w http.ResponseWriter, r *h
 	if err != nil {
 		error_handling.ErrorHandlingBadRequest(w, err)
 		logrus.Error(err)
-		return nil
+		return err
 	}
 
 	_, err = handler.DB.Exec("UPDATE todolist_mux SET status=? WHERE id=?", request.Status, todolistId)
 	if err != nil {
 		error_handling.ErrorHandlingInternalServerError(w, err)
 		logrus.Error(err)
-		return nil
+		return err
 	}
 
 	apiResponse := domain.Response{
@@ -278,11 +282,12 @@ func (handler *TodolistHandlerImpl) DeleteTodo(w http.ResponseWriter, r *http.Re
 	if err := handler.DB.QueryRow("SELECT COUNT(*) FROM todolist_mux WHERE id=?", todolistId).Scan(&count); err != nil {
 		error_handling.ErrorHandlingInternalServerError(w, err)
 		logrus.Error("Failed to check Todolist ", err)
-		return nil
+		return err
 	}
 
 	if count == 0 {
-		error_handling.ErrorHandlingStatusNotFound(w, errors.New("id not found"))
+		error_handling.ErrorHandlingStatusNotFound(w, errors.New("Id not found"))
+		logrus.Error("Id not found")
 		return nil
 	}
 
@@ -290,7 +295,7 @@ func (handler *TodolistHandlerImpl) DeleteTodo(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		error_handling.ErrorHandlingInternalServerError(w, err)
 		logrus.Error(err)
-		return nil
+		return err
 	}
 
 	apiResponse := domain.Response{
