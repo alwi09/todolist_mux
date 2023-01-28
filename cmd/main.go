@@ -16,7 +16,7 @@ func main() {
 
 	db, err := mysql.ConnectDB()
 	if err != nil {
-		logrus.Error(err)
+		logrus.Fatal(err)
 	}
 	defer db.Close()
 
